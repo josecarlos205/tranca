@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo Tranca Pro - 3000 Pts</title>
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-pink: #ff007f;
+            --neon-green: #39ff14;
+            --bg-dark: #050505;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Orbitron', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        /* Fundo Animado Neo */
+        .animated-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%);
+            z-index: -1;
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 150%; height: 150%;
+            background: conic-gradient(from 180deg, transparent, var(--neon-blue), transparent, var(--neon-pink), transparent);
+            animation: rotate 15s linear infinite;
+            filter: blur(100px);
+            opacity: 0.12;
+        }
+
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+        /* Container Principal */
+        .dashboard {
+            width: 100%;
+            max-width: 950px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: 0.4s;
+        }
+
+        .winner-border { border-color: var(--neon-green) !important; box-shadow: 0 0 30px var(--neon-green); }
+
+        h2 { margin-bottom: 20px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-blue); font-size: 1.4rem; }
+
+        .input-group { margin-bottom: 10px; text-align: left; }
+        label { display: block; font-size: 0.65rem; color: #888; margin-bottom: 4px; text-transform: uppercase; }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            padding: 10px;
+            color: white;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        input:focus { border-color: var(--neon-blue); box-shadow: 0 0 5px var(--neon-blue); }
+        .neg-input:focus { border-color: var(--neon-pink); box-shadow: 0 0 5px var(--neon-pink); }
+
+        /* Resultados */
+        .total-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+
+        .total-box label { color: var(--neon-blue); font-weight: bold; }
+        .score-display {
+            display: block;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        /* Botões */
+        .controls {
+            grid-column: span 2;
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 18px;
+            background: transparent;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-save { border: 2px solid var(--neon-blue); color: var(--neon-blue); }
+        .btn-save:hover:not(:disabled) { background: var(--neon-blue); color: black; box-shadow: 0 0 20px var(--neon-blue); }
+
+        .btn-reset { border: 2px solid var(--neon-pink); color: var(--neon-pink); }
+        .btn-reset:hover { background: var(--neon-pink); color: white; box-shadow: 0 0 20px var(--neon-pink); }
+
+        #victory-msg {
+            text-align: center;
+            font-size: 1.8rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 15px var(--neon-green);
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .controls { grid-column: span 1; flex-direction: column; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="animated-bg"></div>
+
+    <div id="victory-msg">SISTEMA FINALIZADO: VENCEDOR!</div>
+
+    <div class="dashboard">
+        <!-- Equipe A -->
+        <div class="team-card" id="teamA">
+            <h2>EQUIPE A</h2>
+            <div class="input-group">
+                <label>Positivo 1 (Mesa)</label>
+                <input type="number" class="pos1" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Positivo 2 (Canastras)</label>
+                <input type="number" class="pos2" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Negativo (Cartões)</label>
+                <input type="number" class="neg neg-input" placeholder="0">
+            </div>
+            <div class="total-box">
+                <label>Total Acumulado</label>
+                <span class="score-display">0</span>
+            </div>
+        </div>
+
+        <!-- Equipe B -->
+        <div class="team-card" id="teamB">
+            <h2>EQUIPE B</h2>
+            <div class="input-group">
+                <label>Positivo 1 (Mesa)</label>
+                <input type="number" class="pos1" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Positivo 2 (Canastras)</label>
+                <input type="number" class="pos2" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Negativo (Cartões)</label>
+                <input type="number" class="neg neg-input" placeholder="0">
+            </div>
+            <div class="total-box">
+                <label>Total Acumulado</label>
+                <span class="score-display">0</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-save" id="btnSave" onclick="processRound()">Salvar Rodada</button>
+            <button class="btn-reset" onclick="resetGame()">Zerar Jogo</button>
+        </div>
+    </div>
+
+    <script>
+        let scoreA = 0;
+        let scoreB = 0;
+        const LIMIT = 3000;
+
+        function processRound() {
+            // Equipe A
+            const p1A = parseFloat(document.querySelector('#teamA .pos1').value) || 0;
+            const p2A = parseFloat(document.querySelector('#teamA .pos2').value) || 0;
+            const nA = parseFloat(document.querySelector('#teamA .neg').value) || 0;
+            scoreA += (p1A + p2A - nA);
+
+            // Equipe B
+            const p1B = parseFloat(document.querySelector('#teamB .pos1').value) || 0;
+            const p2B = parseFloat(document.querySelector('#teamB .pos2').value) || 0;
+            const nB = parseFloat(document.querySelector('#teamB .neg').value) || 0;
+            scoreB += (p1B + p2B - nB);
+
+            updateDisplay();
+            clearInputs();
+            saveToStorage();
+            checkWinner();
+        }
+
+        function updateDisplay() {
+            document.querySelector('#teamA .score-display').innerText = scoreA;
+            document.querySelector('#teamB .score-display').innerText = scoreB;
+        }
+
+        function clearInputs() {
+            document.querySelectorAll('input').forEach(input => input.value = '');
+        }
+
+        function checkWinner() {
+            if (scoreA >= LIMIT || scoreB >= LIMIT) {
+                const msg = document.getElementById('victory-msg');
+                msg.style.display = 'block';
+                document.getElementById('btnSave').disabled = true;
+                document.getElementById('btnSave').style.opacity = '0.2';
+
+                if (scoreA > scoreB) {
+                    document.getElementById('teamA').classList.add('winner-border');
+                    msg.innerText = "EQUIPE A É A VENCEDORA!";
+                } else if (scoreB > scoreA) {
+                    document.getElementById('teamB').classList.add('winner-border');
+                    msg.innerText = "EQUIPE B É A VENCEDORA!";
+                } else {
+                    msg.innerText = "EMPATE TÉCNICO!";
+                }
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('neoTrancaPro', JSON.stringify({ a: scoreA, b: scoreB }));
+        }
+
+        function resetGame() {
+            if (confirm("Deseja reiniciar a partida? Isso apagará o progresso atual.")) {
+                scoreA = 0;
+                scoreB = 0;
+                localStorage.removeItem('neoTrancaPro');
+                updateDisplay();
+                clearInputs();
+                
+                document.getElementById('victory-msg').style.display = 'none';
+                document.getElementById('btnSave').disabled = false;
+                document.getElementById('btnSave').style.opacity = '1';
+                document.querySelectorAll('.team-card').forEach(c => c.classList.remove('winner-border'));
+            }
+        }
+
+        window.onload = () => {
+            const saved = localStorage.getItem('neoTrancaPro');
+            if (saved) {
+                const data = JSON.parse(saved);
+                scoreA = data.a;
+                scoreB = data.b;
+                updateDisplay();
+                checkWinner();
+            }
+        };
+    </script>
+</body>
+</html>
